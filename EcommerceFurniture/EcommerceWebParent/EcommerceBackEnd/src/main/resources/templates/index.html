@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en">
+<head th:replace="fragments :: header_link('Home - Ecommerce Furniture Admin', 'none')">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div th:replace="fragments :: menu_link"></div>
+
+        <div>
+            <h1 class="head-text">Ecommerce Control Panel</h1>
+            
+                <div class="text-welcome">
+                	<span class="mt-3">Welcome</span>
+                 	
+                 	<div class="account-hover">
+	                 	<a th:href="@{/account}"
+	                   sec:authentication="principal.fullName" class="text-name">
+	                	</a>
+                 	</div>
+                	<span sec:authentication="principal.authorities" class="mt-3"></span>
+                </div>
+                	 
+                  
+                	
+            <div class="text-center py-3">            
+            	<img th:src="@{/images/Asset 1.png}" class="img-asset"/>
+            </div>
+
+        </div>
+
+    </div>
+    <div th:replace="fragments :: footer_link"></div>
+
+</body>
+</html>

@@ -1,0 +1,55 @@
+server:
+  port: 8000
+  servlet:
+    context-path: /EcommerceFurniture
+spring:
+  profiles:
+    active=${ENV:}
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  datasource:
+    password: ${JDBC_DATABASE_PASSWORD:}
+    url: ${JDBC_DATABASE_URL:}
+    username: ${JDBC_DATABASE_USERNAME:}
+    driverClassName: ${JDBC_DATABASE_DRIVER:}
+  devtools:
+    livereload:
+      enabled: true
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+    show-sql: false
+  main:
+    allow-circular-references: true
+    lazy-initialization: true
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: 487638635028-ovm1t7tb3m42a0ud4ot3b6k4dsv15dd8.apps.googleusercontent.com
+            client-secret: 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
+            scope:
+              - email
+              - profile
+          facebook:
+            client-id: 722399232114351
+            client-secret: 5e1ddc48350e504a17cc90b280b7cbb7
+            scope:
+              - email
+              - public_profile
+
+messenger4j:
+  appSecret: 6223f4d12d2ec5f89410ac49a7db6d6f
+  verifyToken: 123456789
+  pageAccessToken: EAAFwv8tIgHEBAJiLXHSNZCVpw9JAH7dnXxFR8IVKkTuPICb65a7exDOVNMwG69z20KvZAyNaELBIc0J2le4DF8I5m3rWdezM9QZC9n8kIi0x1vqKBxEF1CwEG12YsqLmYSZAZA7j9uGMc7IhsyJxXVuF8kfMiyqg5tVbAT2PbqIo90A1MKrHk

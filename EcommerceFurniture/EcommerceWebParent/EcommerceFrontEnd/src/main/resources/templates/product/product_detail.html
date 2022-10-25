@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+	  lang="en">
+
+<head th:replace="fragments :: header_link(${pageTitle}, 'none')">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<style>
+	.carousel .carousel-indicators li {
+		background-color: #fff;
+		background-color: rgba(70, 70, 70, .25);
+	}
+
+	.carousel .carousel-indicators .active {
+		background-color: #444;
+	}
+
+	.carousel .carousel-control-next,
+	.carousel .carousel-control-prev {
+		filter: invert(100%);
+	}
+
+	.carousel .carousel-control-next:hover,
+	.carousel .carousel-control-prev:hover {
+		filter: invert(70%);
+	}
+</style>
+
+<body>
+
+<div class="container-fluid">
+	<div th:replace="fragments :: header_menu"></div>
+	<div th:replace="fragments :: search_nav"></div>
+	<div th:replace="breadcrumb :: content"></div>
+
+	<div class="row">
+		<div class="col-sm">
+			<div>
+				<img id="mainImage" th:src="@{${product.mainImagePath}}" class="img-fluid">
+			</div>
+			<div class="row justify-content-center">
+				<div class="m-2 border border-light p-1">
+					<img class="image-thumbnail" th:src="@{${product.mainImagePath}}" height="60" index="0">
+				</div>
+				<th:block th:each="extraImage, status : ${product.getImages()}">
+					<div class="m-2 border border-light p-1">
+						<img class="image-thumbnail" th:src="@{${extraImage.imagePath}}" height="60"
+							 th:index="${status.count}">
+					</div>
+				</th:block>
+			</div>
+		</div>
+		<div class="col-sm mt-5">
+			<div class="px-2">
+				<div>
+					<h2>[[${product.name}]]</h2>
+				</div>
+				<div>
+					<span>Brand: [[${product.brand.name}]]</span>
+				</div>
+				<div>
+					Price:
+					<span th:if="${product.discountPercent <= 0}">
+							<div th:replace="product/product_info :: price(${product.price})"></div>
+						</span>
+					<del th:if="${product.discountPercent > 0}"><span>
+								<div th:replace="product/product_info :: price(${product.price})"></div>
+							</span></del>
+				</div>
+				<div th:if="${product.discountPercent > 0}">
+					Price:
+					<span style="font-size: larger; color: darkred">
+							<div th:replace="product/product_info :: price(${product.discountPrice})"></div>
+						</span>
+					([[${#numbers.formatDecimal(product.discountPercent, 1, THOUSANDS_POINT_TYPE, DECIMAL_DIGITS,
+					DECIMAL_POINT_TYPE)}]]% off)
+				</div>
+				<div>&nbsp;</div>
+				<div th:utext="${product.shortDescription}"></div>
+
+				<div class="mt-5">
+					<div  id="divQuantity">
+						<span th:if="${product.quantityInStock > 0}" class="text-color" id="inStockText"><b>In Stock: [[${product.quantityInStock}]]</b></span>
+						<span th:unless="${product.quantityInStock > 0}" class="text-danger"><b>Out of Stock</b></span>
+					</div>
+					<input type="hidden" name="quantityInStock" th:value="${product.quantityInStock - 1}" id="quantityInStock">
+					<th:block th:if="${product.quantityInStock}">
+
+						<nav class="mt-2">
+							<ul class="pagination align-items-center">
+								<li class="page-item text-center minus">
+									<a class="page_link linkMinus text-color" th:pid="${product.id}" href=""><i class="fa-thin fa-minus" style="font-family: 'FontAwesome'"></i></a>
+								</li>
+								<li class="page-item">
+									<input type="text" th:value="1" th:id="'quantity' + ${product.id}"
+										   onkeydown="return false;" class="form-control text-center"
+										   style="width: 72px;"/>
+								</li>
+								<li class="page-item text-center plus">
+									<a class="page_link linkPlus text-color" th:pid="${product.id}" href=""><i class="fa-thin fa-plus" style="font-family: 'FontAwesome'"></i></a>
+								</li>
+							</ul>
+						</nav>
+
+						<div class="mt-3">
+							<input type="button" value="Add to Cart" id="buttonAdd2Cart" class="btn btn-primary-color" style="width: 133px;">
+						</div>
+
+					</th:block>
+
+				</div>
+
+			</div>
+
+
+			<div class="row mt-5">
+				<div class="col-12">
+					<div>
+						<button class="product-descript-btntoggle">
+							<div class="product-btntoggle-flex">
+								<span>Product Description:</span>
+
+								<div class="descript-angle-down">
+									<span class="fa fa-angle-down"></span>
+								</div>
+								<div class="descript-angle-up">
+									<span class="fa fa-angle-up"></span>
+								</div>
+							</div>
+
+
+						</button>
+					</div>
+					<div class="product-fulldescpt mt-3" th:utext="${product.fullDescription}"></div>
+				</div>
+			</div>
+
+			<div class="row my-5">
+				<div class="col-12">
+					<div>
+						<button class="product-detail-btntoggle">
+
+							<div class="product-btntoggle-flex">
+								<span>Product Details:</span>
+
+								<div class="detail-angle-down">
+									<span class="fa fa-angle-down"></span>
+								</div>
+								<div class="detail-angle-up">
+									<span class="fa fa-angle-up"></span>
+								</div>
+							</div>
+						</button>
+					</div>
+					<th:block th:each="detail : ${product.details}">
+						<div class="product-detail mt-3">
+							<b>[[${detail.name}]]:</b>
+							<span>[[${detail.value}]]</span>
+						</div>
+					</th:block>
+				</div>
+			</div>
+
+		</div>
+	</div>
+	<th:block th:if="${listComments.size()} > 0">
+
+
+		<div class="container-fluid comment">
+
+			<th:block th:if="${isCustomer}">
+				<div th:each="orderDetail : ${listDetail}">
+					<div th:if="${orderDetail.product.id} == ${product.id}">
+						<form id="form" method="post" enctype="multipart/form-data" th:action="@{'/p/'+${product.alias}+'/addComment'}" onsubmit="submit()">
+						<div class="col-sm">
+							<div style="float: left">
+								<input type="hidden" name="productId" id="productId" th:value="${product.id}">
+								<input checked value="5" class="star star-5" id="star-5" type="radio" name="rating"/>
+								<label class="star star-5" for="star-5"></label>
+								<input value="4" class="star star-4" id="star-4" type="radio" name="rating"/>
+								<label class="star star-4" for="star-4"></label>
+								<input value="3" class="star star-3" id="star-3" type="radio" name="rating"/>
+								<label class="star star-3" for="star-3"></label>
+								<input value="2" class="star star-2" id="star-2" type="radio" name="rating"/>
+								<label class="star star-2" for="star-2"></label>
+								<input value="1"class="star star-1" id="star-1" type="radio" name="rating"/>
+								<label class="star star-1" for="star-1"></label>
+							</div>
+							<div>
+								<textarea id="text" name="text" class="form-control" rows="3" cols="3"></textarea>
+								<div>
+									<input type="file" id="file" name="file[]" accept="image/png, image/jpeg" multiple>
+								</div>
+								<div id="preview"></div>
+								<div id="error"></div>
+								<button type="button" class="btn btn-primary-color my-2" id="btn-add-comment">Add Comment</button>
+							</div>
+						</div>
+					</form>
+					</div>
+				</div>
+			</th:block>
+			<th:block th:if="${listComments.size()} > 0">
+				<span class="ml-3" style="font-size: 26px">Product Reviews</span>
+
+				<th:block th:each="comment : ${listComments}">
+					<div>
+
+						<div class="col-sm mt-3">
+							<div>
+								<div class="row">
+									<div class="col-sm-1">
+										<img th:src="@{${comment.customer.getPhotosImagePath}}" class="img-fluid" width="80px">
+
+									</div>
+									<div class="col-sm-11">
+										<div>
+											<b>
+												[[${comment.customer.fullName}]]
+											</b>
+										</div>
+										<div class="d-flex">
+											<div th:if="${comment.rating} == 1"  style="float: left">
+												<input value="1" class="star-small star-small-5" id="star-small-5" type="radio" readonly/>
+												<label class="star-small star-small-5" for="star-small-5"></label>
+
+												<input value="2" class="star-small star-small-4" id="star-small-4" type="radio" readonly/>
+												<label class="star-small star-small-4" for="star-small-4"></label>
+
+												<input value="3" class="star-small star-small-3" id="star-small-3" type="radio" readonly/>
+												<label class="star-small star-small-3" for="star-small-3"></label>
+
+												<input value="4" class="star-small star-small-2" id="star-small-2" type="radio" readonly/>
+												<label class="star-small star-small-2" for="star-small-2"></label>
+
+												<input checked value="5"class="star-small star-small-1" id="star-small-1" type="radio" readonly/>
+												<label class="star-small star-small-1" for="star-small-1"></label>
+											</div>
+
+											<div th:if="${comment.rating} == 2"  style="float: left">
+												<input value="1" class="star-small star-small-5" type="radio" readonly/>
+												<label class="star-small star-small-5"></label>
+
+												<input value="2" class="star-small star-small-4" type="radio" readonly/>
+												<label class="star-small star-small-4"></label>
+
+												<input value="3" class="star-small star-small-3"  type="radio" readonly/>
+												<label class="star-small star-small-3" ></label>
+
+												<input checked value="4" class="star-small star-small-2"type="radio" readonly/>
+												<label class="star-small star-small-2"></label>
+
+												<input value="5"class="star-small star-small-1" type="radio" readonly/>
+												<label class="star-small star-small-1" ></label>
+											</div>
+
+											<div th:if="${comment.rating} == 3"  style="float: left">
+												<input value="1" class="star-small star-small-5" type="radio" readonly/>
+												<label class="star-small star-small-5"></label>
+
+												<input value="2" class="star-small star-small-4" type="radio" readonly/>
+												<label class="star-small star-small-4"></label>
+
+												<input checked value="3" class="star-small star-small-3"  type="radio" readonly/>
+												<label class="star-small star-small-3" ></label>
+
+												<input  value="4" class="star-small star-small-2"type="radio" readonly/>
+												<label class="star-small star-small-2"></label>
+
+												<input value="5"class="star-small star-small-1" type="radio" readonly/>
+												<label class="star-small star-small-1" ></label>
+											</div>
+
+											<div th:if="${comment.rating} == 4"  style="float: left">
+												<input value="1" class="star-small star-small-5" type="radio" readonly/>
+												<label class="star-small star-small-5"></label>
+
+												<input checked value="2" class="star-small star-small-4" type="radio" readonly/>
+												<label class="star-small star-small-4"></label>
+
+												<input value="3" class="star-small star-small-3"  type="radio" readonly/>
+												<label class="star-small star-small-3" ></label>
+
+												<input  value="4" class="star-small star-small-2"type="radio" readonly/>
+												<label class="star-small star-small-2"></label>
+
+												<input value="5"class="star-small star-small-1" type="radio" readonly/>
+												<label class="star-small star-small-1" ></label>
+											</div>
+
+											<div th:if="${comment.rating} == 5"  style="float: left">
+												<input checked value="1" class="star-small star-small-5" type="radio" readonly/>
+												<label class="star-small star-small-5"></label>
+
+												<input  value="2" class="star-small star-small-4" type="radio" readonly/>
+												<label class="star-small star-small-4"></label>
+
+												<input value="3" class="star-small star-small-3"  type="radio" readonly/>
+												<label class="star-small star-small-3" ></label>
+
+												<input  value="4" class="star-small star-small-2"type="radio" readonly/>
+												<label class="star-small star-small-2"></label>
+
+												<input value="5"class="star-small star-small-1" type="radio" readonly/>
+												<label class="star-small star-small-1" ></label>
+											</div>
+										</div>
+										<div>
+											<b>
+												<div th:text="${#temporals.format(comment.date, 'dd-MM-yyyy HH:mm:ss')}"></div>
+											</b>
+										</div>
+										<div class="mt-2">
+											<span th:text="${comment.text}" readonly></span>
+										</div>
+										<div class="d-flex" >
+											<th:block th:each="commentImage : ${listCommentImages}">
+												<span th:if="${commentImage.comment} == ${comment}" style="margin-right: 30px">
+													<img th:src="@{${commentImage.imagePath}}">
+												</span>
+
+											</th:block>
+										</div>
+
+									</div>
+								</div>
+
+							</div>
+
+
+							<div style="margin-left: 9rem; margin-top: 2rem">
+
+								<th:block th:each="commentReply : ${listCommentsReply}">
+									<div th:if="${commentReply.comment} == ${comment}">
+										<div class="row mt-3">
+											<div class="col-sm-1">
+												<img src="http://localhost:8000/EcommerceFurniture/images/admin.png" class="img-fluid" width="80px"/>
+											</div>
+
+											<div class="col-sm-10">
+												<div>
+													<b>
+														Admin
+													</b>
+												</div>
+												<div>
+													<b>
+														<div th:text="${#temporals.format(commentReply.date, 'dd-MM-yyyy HH:mm:ss')}"></div>
+													</b>
+												</div>
+												<div th:if="${commentReply.comment} == ${comment}" class="mt-2">
+													<span th:text="${commentReply.text}" readonly></span>
+												</div>
+											</div>
+										</div>
+									</div>
+
+
+								</th:block>
+							</div>
+						</div>
+						<hr>
+					</div>
+				</th:block>
+
+				<div th:replace="fragments :: pagination('p/' + ${product.alias}, 'products')"></div>
+			</th:block>
+		</div>
+
+	</th:block>
+
+	<div th:replace="modal_fragments :: modal_dialog"></div>
+
+	<div th:replace="images_carousel :: content"></div>
+
+	<div th:replace="fragments :: footer_menu"></div>
+</div>
+
+<script>
+	contextPath = "[[@{/}]]";
+	productId = "[[${product.id}]]";
+	var csrfHeaderName = "[[${_csrf.headerName}]]";
+	var csrfValue = "[[${_csrf.token}]]";
+	const FIVE_MB = 2097152 ;
+	var img = []
+	var size = []
+
+	function checkImage(ext) {
+		switch (ext.toLowerCase()) {
+			case 'jpg':
+			case 'gif':
+			case 'png':
+				return true;
+		}
+		return false;
+	}
+
+	const showImageThumbnail = (file) => {
+		const fr = new FileReader();
+		fr.onload = (ev) => {
+			$('#preview').append($("<img>", {src: fr.result, alt: file.name, height:"150px", type: "file"}));
+		};
+		fr.readAsDataURL(file);
+	}
+	function submit(){
+
+
+	}
+
+
+	$(document).ready(function () {
+
+
+
+		$("#file").change(function(ev) {
+			$('#preview').empty()
+			$('#error').empty()
+			if (!ev.target.files) return;
+			[...ev.target.files].forEach(showImageThumbnail);
+		});
+
+		$("#btn-add-comment").click(function (){
+
+			var isSizeMoreThan2B = false;
+			var isImage = true;
+			for(var i=0;i<$("#file")[0].files.length;i++){
+				if($("#file")[0].files[i].size > FIVE_MB){
+					size[i] = $("#file")[0].files[i].name;
+					isSizeMoreThan2B = true;
+				}
+				fileName = $("#file")[0].files[i].name;
+				var ext = fileName.slice((Math.max(0, fileName.lastIndexOf(".")) || Infinity) + 1);
+				if(checkImage(ext)==false){
+					img[i] = $("#file")[0].files[i].name;
+					isImage = false;
+				}
+			}
+
+			if(isImage == true && isSizeMoreThan2B == false){
+				$("#form").submit();
+			}
+			else{
+
+
+				for(var i = 0 ;i<size.length;i++){
+					$('#error').append("<div class='text-danger'>There are files larger than 2MB !</div>");
+
+				}
+				size = [];
+
+				for(var i = 0 ;i<img.length;i++){
+					$('#error').append("<div class='text-danger'>There are files that are not images !</div>");
+
+				}
+				img = [];
+
+
+
+			}
+
+		})
+
+
+		mainImage = $("#mainImage");
+
+		$(".image-thumbnail").mouseover(function () {
+			currentImageSrc = $(this).attr("src");
+			currentImageIndex = $(this).attr("index");
+			mainImage.attr("src", currentImageSrc);
+			mainImage.attr("index", currentImageIndex);
+		});
+
+		mainImage.on("click", function () {
+			$("#carouselModal").modal("show");
+			imageIndex = parseInt(mainImage.attr("index"));
+			$("#carouselExampleIndicators").carousel(imageIndex);
+		});
+	});
+</script>
+<script type="text/javascript" th:src="@{/js/common_modal.js}"> </script>
+<script type="text/javascript" th:src="@{/js/quantity_control.js}"> </script>
+<script type="text/javascript" th:src="@{/js/add_to_cart.js}"> </script>
+</body>
+
+</html>

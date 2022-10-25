@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: header_link(${pageTitle}, 'tag')" />
+<body>
+<div class="container-fluid">
+
+	<div th:replace="fragments :: menu_link"></div>
+	
+	<div>
+		<h2 class="head-text">Manage Shipping Rates | [[${pageTitle}]]</h2>
+	</div>
+		
+	<form class="box-shadow-form my-5" th:action="@{/shipping_rates/save}" th:object="${rate}" method="post"
+		style="max-width: 780px; margin:  0 auto;" onsubmit="return checkDistrictUnique(this);">
+		<input type="hidden" th:field="*{id}" />
+
+
+		<div class="rounded p-3">
+
+			<div th:if="${message != null}" class="alert alert-danger text-center mt-2">
+				[[${message}]]
+			</div>
+
+			  <div class="form-group row my-5 px-3">
+				  <label class="col-sm-4 col-form-lable">Country&nbsp;<span class="required">*</span>:</label>
+				  <div class="col-sm-8">
+					  <select class="form-control" th:name="country" id="country">
+						  <option value="0">--Select Country--</option>
+						  <th:block th:each="country : ${listCountries}">
+							  <option th:value="${country.id}">[[${country.name}]]</option>
+						  </th:block>
+					  </select>
+				  </div>
+			  </div>
+
+			  <div class="form-group row my-5 px-3">
+				  <label class="col-sm-4 col-form-lable">City/Province&nbsp;<span class="required">*</span>:</label>
+				  <div class="col-sm-8">
+					  <select class="form-control" id="city" th:name="city">
+						  <option>--Select City/Province--</option>
+					  </select>
+				  </div>
+			  </div>
+
+			  <div class="form-group row my-5 px-3">
+				  <label class="col-sm-4 col-form-lable">District&nbsp;<span class="required">*</span>:</label>
+				  <div class="col-sm-8">
+					  <select class="form-control" id="district" th:name="district">
+						  <option>--Select District--</option>
+					  </select>
+				  </div>
+			  </div>
+
+			 <div class="form-group row my-5 px-3">
+				<label class="col-sm-4 col-form-label">Cash On Delivery (COD):</label>
+				<div class="col-sm-8">
+					<input type="checkbox" th:field="*{codSupported}" />
+				</div>
+			 </div>
+
+			<div class="form-group row my-5 px-3">
+				<label class="col-sm-4 col-form-label">Number of days to delivery:</label>
+				<div class="col-sm-8">
+					<input type="number" th:field="*{days}" class="form-control" step="1" value="1"/>
+
+				</div>
+			</div>
+
+			<div class="form-group row my-5 px-3">
+				<label class="col-sm-4 col-form-label">Rates:</label>
+				<div class="col-sm-8">
+					<input type="number" th:field="*{rate}" step="0.1" value="0.1" class="form-control"/>
+				</div>
+			</div>
+
+			<div class="text-center">
+				<input type="submit" value="Save" class="btn btn-primary-color m-3" />
+				<input type="button" value="Cancel" class="btn btn-secondary" id="cancelButton" />
+			</div>
+
+		</div>
+
+	</form>
+	
+	<div th:replace="modal_fragments :: modal_dialog"></div>
+	<div th:replace="fragments :: footer_link"></div>
+</div>	
+<script type="text/javascript">
+	contextPath = "[[@{/}]]";
+	moduleUrl = "[[@{/shipping_rates}]]";
+
+	const checkDistrictUnique = (form) => {
+		url = "[[@{/shipping_rates/check_shipping_rates}]]";
+		shippingrateId = $("#id").val();
+		districtId = $("#district").val();
+		csrfValue = $("input[name= '_csrf']").val();
+
+		params = {shippingRateId: shippingrateId, districtId: districtId, _csrf: csrfValue};
+		$.post(url, params, (response) => {
+			if (response == "OK"){
+				form.submit();
+			} else if (response == "Duplicate shipping rate"){
+				showWarningModal("The destination already exists !!!");
+			} else {
+				showErrorModal("Unknown response from server");
+			}
+		}).fail(() => {
+			showErrorModal("Could not connect to the server");
+		});
+		return false;
+	}
+
+
+	var dropDownCountry;
+	var dropDownCity;
+	var dropDownDistrict;
+
+	$(document).ready(function () {
+
+
+		dropDownCountry = $("#country");
+		dropDownCity = $("#city");
+		dropDownDistrict = $("#district");
+
+		dropDownCountry.on("change", function() {
+			dropDownCity.empty();
+			dropDownCity.append($("<option>").val(0).text("--Select City/Province--"));
+			dropDownDistrict.empty();
+			dropDownDistrict.append($("<option>").val(0).text("--Select District--"));
+
+			loadCitiesForCountry();
+			dropDownCity.val("").focus();
+			dropDownCity.append($("<option>").val(0).text("--Select City/Province--").attr("selected","selected"));
+
+		})
+
+		dropDownCity.on("change", function() {
+
+			dropDownDistrict.empty();
+			dropDownDistrict.append($("<option>").val(0).text("--Select District--"));
+
+			loadDistrictForCity();
+			dropDownDistrict.val("").focus();
+
+		})
+
+	})
+
+	function loadCitiesForCountry() {
+		selectedCountry = $("#country option:selected");
+		countryId = selectedCountry.val();
+		url = contextPath + "settings/list_cities_by_country/" + countryId;
+
+		$.get(url, function(responseJSON) {
+			dropDownCity.empty();
+			dropDownCity.append($("<option>").val(0).text("--Select City/Province--"));
+			$.each(responseJSON, function(index, city){
+				dropDownCity.append($("<option>").val(city.id).text(city.name));
+			})
+		})
+
+
+	}
+
+	function loadDistrictForCity() {
+		selectedCity= $("#city option:selected");
+		cityId = selectedCity.val();
+		url = contextPath + "settings/list_districts_by_city/" + cityId;
+		$.get(url, function(responseJSON) {
+			dropDownDistrict.empty();
+			dropDownDistrict.append($("<option>").val(0).text("--Select District--"));
+
+			$.each(responseJSON, function(index, district){
+				dropDownDistrict.append($("<option>").val(district.id).text(district.name));
+			})
+		})
+	}
+
+</script>
+<script type="text/javascript" th:src="@{/js/common-form.js}"></script>
+
+</body>
+</html>

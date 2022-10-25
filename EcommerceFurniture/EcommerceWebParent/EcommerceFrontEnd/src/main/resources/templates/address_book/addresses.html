@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: header_link('Your Address Book', 'none')" />
+
+<body>
+	<div class="container-fluid"
+		th:with="redirectedFromCheckoutPage = ${param.redirect != null && param.redirect[0] == 'checkout'}">
+
+
+		<div th:replace="fragments :: header_menu"></div>
+
+		<div class="text-center" style="margin-top: 10rem">
+			<div>
+				<h2 class="text-color text-center" th:text="${redirectedFromCheckoutPage} ? 'Choose a Shipping Address' : 'Your Address Book'"></h2>
+			</div>
+
+		</div>
+
+		<div>
+			<button class="btn btn-primary-color ml-4 my-2">
+				<a th:unless="${param.redirect}" th:href="@{/address_book/new}" class="h4 text-white">Add New Address</a>
+				<a th:if="${redirectedFromCheckoutPage}" th:href="@{/address_book/new(redirect=checkout)}"
+				   class="h4 text-white">Add New Address</a>
+			</button>
+
+		</div>
+
+		<div th:if="${message != null}" class="alert alert-success text-center mx-4">
+			[[${message}]]
+		</div>
+
+		<div class="row m-1">
+			<th:block th:each="address : ${listAddresses}">
+				<div class="col-sm-6 mt-2">
+						<div th:if="${address.defaultForShipping}">
+							<div class="card bg-card">
+								<div class="card-header text-muted">
+									<div class="row">
+										<div class="col">
+											<b>Your Primary Address</b>
+
+											<th:block>
+												<span class="text-success">[Default]</span>
+											</th:block>
+										</div>
+										<div class="col">
+											<div class="float-right">
+												<a th:unless="${param.redirect}" class="fas fa-edit icon-dark"
+												   title="Edit this address"
+												   th:href="@{'/address_book/edit/' + ${address.id}}"></a>
+
+												<a th:if="${redirectedFromCheckoutPage}" class="fas fa-edit icon-dark"
+												   title="Edit this address"
+												   th:href="@{'/address_book/edit/' + ${address.id} + '?redirect=checkout'}"></a>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-body text-muted">
+									<div>[[${address.addressDetail}]], [[${address.ward.name}]],
+										[[${address.ward.district.name}]], [[${address.ward.district.city.name}]],
+										[[${address.ward.district.city.country.name}]]
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div th:unless="${address.defaultForShipping}">
+							<div class="card">
+								<div class="card-header text-muted">
+									<div class="row">
+										<div class="col">
+											<b>Another Address</b>
+											<a class="btn bg-linear" th:unless="${param.redirect}" th:href="@{'/address_book/default/' + ${address.id}}">Set as default</a>
+											<a class="btn bg-linear" th:if="${param.redirect != null && param.redirect[0] == 'cart'}"
+											   th:href="@{'/address_book/default/'+ ${address.id} +'?redirect=cart'}">Set as default</a>
+											<a th:if="${redirectedFromCheckoutPage}"
+											   th:href="@{'/address_book/default/'+ ${address.id} +'?redirect=checkout'}">[Choose]</a>
+										</div>
+										<div class="col">
+											<div class="float-right">
+
+												<a th:unless="${param.redirect}" class="fas fa-edit icon-dark"
+												   title="Edit this address"
+												   th:href="@{'/address_book/edit/' + ${address.id}}"></a>
+
+												<a th:if="${redirectedFromCheckoutPage}" class="fas fa-edit icon-dark"
+												   title="Edit this address"
+												   th:href="@{'/address_book/edit/' + ${address.id} + '?redirect=checkout'}"></a>
+
+												&nbsp;
+												<a class="fas fa-trash icon-dark linkDelete" title="Delete this address"
+												   th:entityId="${address.id}"
+												   th:href="@{'/address_book/delete/' + ${address.id}}"></a>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="card-body text-muted">
+									<div>[[${address.addressDetail}]], [[${address.ward.name}]],
+										[[${address.ward.district.name}]], [[${address.ward.district.city.name}]],
+										[[${address.ward.district.city.country.name}]]
+									</div>
+								</div>
+							</div>
+						</div>
+				</div>
+			</th:block>
+		</div>
+		<div>&nbsp;</div>
+		<div th:replace="modal_fragments :: modal_confirm"></div>
+		<div th:replace="fragments :: footer_menu"></div>
+	</div>
+	<script type="text/javascript">
+		$(document).ready(function () {
+			$(".linkDelete").on("click", function (evt) {
+				evt.preventDefault();
+				showDeleteConfirmModal($(this), 'address');
+			});
+		});
+
+		function showDeleteConfirmModal(link, entityName) {
+			entityId = link.attr("entityId");
+
+			$("#yesBtn").attr("href", link.attr("href"));
+			$("#confirmedText").text("Are you sure you want to delete this "
+				+ entityName + " ID " + entityId + "?");
+			$("#confirmModal").modal();
+		}	
+	</script>
+</body>
+
+</html>

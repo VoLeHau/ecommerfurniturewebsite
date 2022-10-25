@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: header_link(${pageTitle}, 'tag')" />
+<body>
+<div class="container-fluid">
+	<div th:replace="fragments :: menu_link"></div>
+	
+	<div>
+		<h2 class="head-text">Manage Orders | [[${pageTitle}]]</h2>
+	</div>
+		
+	<form class="box-shadow-form my-5" th:action="@{/orders/save}"  method="post" onsubmit="return processFormBeforeSubmit();"
+		style="max-width: 900px; margin: 0 auto;">
+		<input type="hidden" th:value="${order.id}" th:name="orderId" id="id"/>
+		<div class="p-5">
+
+			<div class="p-3" >
+				<div id="trackList">
+					<th:block th:each="track, status : ${order.orderTracks}">
+						<div class="row border p-3 mx-2" th:id="'rowTrack' + ${status.count}"
+							 th:with="isTrackWithStatusNew = ${track.status.toString() == 'NEW'}">
+
+							<input type="hidden" name="trackId" th:value="${track.id}" class="hiddenTrackId" />
+
+							<div class="col-1 text-center">
+								<div class="divCountTrack">[[${status.count}]]</div>
+							</div>
+
+							<div class="col-11">
+								<div class="form-group row">
+									<label class="col-form-label col-sm-3">Time:</label>
+									<div class="col-sm-9">
+										<input name="trackDate" th:value="${#dates.format(track.updatedTime, 'dd-MM-yyyy HH:mm:ss')}"
+											   class="form-control"
+											   readonly
+											   />
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<label class="col-form-label col-sm-3">Status:</label>
+									<div class="col-sm-9">
+										<th:block th:if="${isTrackWithStatusNew}">
+											<input type="hidden" name="trackStatus" value="NEW" />
+										</th:block>
+										<input  name="trackStatus" class="form-control dropDownStatus" required style="max-width: 250px"
+												th:rowNumber="${status.count}"
+												th:disabled="${isTrackWithStatusNew}"
+												th:id="${isTrackWithStatusNew ? 'trackStatusOptions' : ''}" readonly="" th:value="${track.status}"/>
+
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<label class="col-form-label col-sm-3">Notes:</label>
+									<div class="col-sm-9">
+										<textarea rows="2" cols="10" class="form-control" name="trackNotes"
+												  th:id="'trackNote' + ${status.count}"
+												  readonly required>[[${track.notes}]]</textarea>
+									</div>
+								</div>
+
+							</div>
+						</div>
+						<div th:id="'emptyLine' + ${status.count}" class="row">&nbsp;</div>
+					</th:block>
+				</div>
+				<div class="d-flex justify-content-center">
+					<span id="linkAddTrack" class="btn btn-primary-color mt-3">Add Track Record</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="mb-3">
+			<p class="text-center">
+				<input type="submit" value="Save" class="btn btn-primary-color m-3" />
+				<input type="button" value="Cancel" class="btn btn-secondary" id="buttonCancel" />
+			</p>
+		</div>
+	</form>
+	
+	<div th:replace="modal_fragments :: modal_dialog"></div>
+
+	<div th:replace="fragments :: footer_link"></div>
+</div>	
+<script type="text/javascript">
+	contextPath = "[[@{/}]]";
+	var csrfHeaderName = "[[${_csrf.headerName}]]";
+	var csrfValue = "[[${_csrf.token}]]";	
+	
+	$(document).ready(function() {
+		$('#buttonCancel').click(function() { 
+			window.location = "[[@{/orders}]]";	
+		});
+
+		$("#linkAddTrack").click(function (){
+			$(this).hide();
+			orderId = $("#id").val();
+			trackRecordCount = $(".hiddenTrackId").length;
+			nextCount = trackRecordCount + 1;
+			rowId = "rowTrack" + nextCount;
+			emptyLineId = "emptyLine" + nextCount;
+			trackNoteId = "trackNote" + nextCount;
+			currentDateTime = formatCurrentDateTime();
+
+			csrfValue = $("input[name= '_csrf']").val();
+
+			params = {orderId:orderId, rowId: rowId, nextCount:nextCount, emptyLineId: emptyLineId, trackNoteId:trackNoteId, currentDateTime: currentDateTime, _csrf:csrfValue}
+
+			url = contextPath + "addOrders";
+
+			$.post(url, params, (response) => {
+				$("#trackList").append(response);
+			})
+		});
+
+
+		
+	});
+
+	function formatCurrentDateTime() {
+
+		date = new Date();
+		year = date.getFullYear();
+		month = date.getMonth() + 1;
+		day = date.getDate();
+		hour = date.getHours();
+		minute = date.getMinutes();
+		second = date.getSeconds();
+
+		if (month < 10) month = "0" + month;
+		if (day < 10) day = "0" + day;
+
+		if (hour < 10) hour = "0" + hour;
+		if (minute < 10) minute = "0" + minute;
+		if (second < 10) second = "0" + second;
+
+
+		return date + "-" + month + "-" + year + hour + ":" + minute + ":" + second;
+
+	}
+
+
+
+</script>
+<script th:src="@{/js/common-form.js}"></script>
+<script th:src="@{/js/jquery.number.min.js}"></script>
+<script th:src="@{/js/order_form_overview_products.js}"></script>
+<script th:src="@{/js/order_form_add_product.js}"></script>
+<script th:src="@{/js/order_form_remove_product.js}"></script>
+<script th:src="@{/js/order_form_tracks.js}"></script>
+</body>
+</html>

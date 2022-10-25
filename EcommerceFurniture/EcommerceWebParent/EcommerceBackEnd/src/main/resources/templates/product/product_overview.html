@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en">
+<body>
+
+<div th:fragment="content" th:remove="tag">
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Product Name&nbsp;<span class="required">*</span>:</label>
+        <div class="col-sm-10">
+            <th:block th:if="${isReadOnlyForSales}">
+                <input type="text" class="form-control" th:field="*{name}" readonly="readonly">
+            </th:block>
+
+            <th:block th:unless="${isReadOnlyForSales}">
+            	<input type="text" class="form-control" th:field="*{name}">
+                <p th:if="${#fields.hasErrors('name')}"  th:errors="*{name}" th:field="*{name}" class="alert alert-danger"></p>
+            </th:block>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Alias&nbsp;<span class="required">*</span>:</label>
+        <div class="col-sm-10">
+            <th:block th:if="${isReadOnlyForSales}">
+                <input type="text" class="form-control" th:field="*{alias}" placeholder="Default is product name (spaces are replaced by dashes)" readonly="readonly">
+	        </th:block>
+
+            <th:block th:unless="${isReadOnlyForSales}">
+		        <input type="text" class="form-control" th:field="*{alias}" placeholder="Default is product name (spaces are replaced by dashes)">
+                <p th:if="${#fields.hasErrors('alias')}"  th:errors="*{alias}" th:field="*{alias}" class="alert alert-danger"></p>
+            </th:block>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Brand:</label>
+        <div class="col-sm-10">
+            <th:block th:unless="${isReadOnlyForSales}">
+                <select class="form-control" id="brand" th:field="*{brand}">
+                    <th:block th:each="brand : ${listBrands}">
+                        <option th:value="${brand.id}">[[${brand.name}]]</option>
+                    </th:block>
+                    <p th:if="${#fields.hasErrors('brand')}"  th:errors="*{brand}" th:field="*{brand}" class="alert alert-danger"></p>
+                </select>
+            </th:block>
+
+            <th:block th:if="${isReadOnlyForSales}">
+                <input type="text" class="form-control" th:value="${product.brand.name}" readonly>
+            </th:block>
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Category:</label>
+        <div class="col-sm-10">
+            <th:block th:unless="${isReadOnlyForSales}">
+                <th:block th:if="${product.category != null}">
+                <select class="form-control" th:field="*{category}">
+                    <th:block th:each="cat : ${product.brand.categories}">
+                        <option th:value="${cat.id}">[[${cat.name}]]</option>
+                    </th:block>
+                    <p th:if="${#fields.hasErrors('category')}"  th:errors="*{category}" th:field="*{category}" class="alert alert-danger"></p>
+                </select>
+                </th:block>
+                
+                <th:block th:if="${product.category == null}">
+                    <select class="form-control" th:field="*{category}" required>
+                    </select>
+                </th:block>
+            </th:block>
+
+            <th:block th:if="${isReadOnlyForSales}">
+                <input type="text" class="form-control" th:value="${product.category.name}" readonly>
+            </th:block>
+        </div>
+    </div>
+    <div class="form-group row margin-top">
+        <label class="col-sm-2 col-form-label">Enabled:</label>
+        <div class="col-sm-10">
+            <th:block th:if="${isReadOnlyForSales}">
+                <th:block th:if="${product.category != null}">
+                    <label>
+                        <input type="checkbox" th:field="*{enabled}">
+                    </label>
+                </th:block>
+        	</th:block>
+            <th:block th:unless="${isReadOnlyForSales}">
+                <input type="checkbox" th:field="*{enabled}">
+        	</th:block>
+        </div>
+    </div>
+    <th:block th:unless="${isReadOnlyForSales}">
+    <div class="form-group row" id="quantity-in-stock">
+        <label class="col-sm-2 col-form-label">Quantity In Stock:</label>
+        <div class="col-sm-10">
+            <input type="number" class="form-control" th:field="*{quantityInStock}" step="1">
+        </div>
+    </div>
+    </th:block>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Cost:</label>
+        <div class="col-sm-10">
+            <input type="number" class="form-control" th:field="*{cost}" step="0.1">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Price:</label>
+        <div class="col-sm-10">
+            <input type="number" class="form-control" th:field="*{price}" step="0.1">
+        </div>
+    </div>
+    <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Discount:</label>
+        <div class="col-sm-10">
+            <input type="number" class="form-control" th:field="*{discountPercent}" step="0.1">
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // $(document).ready(function () {
+    //     $('.container-checkbox input[name=inStock]').on('change', function() {
+    //         if ($('.container-checkbox input[name=inStock]').is(':checked'))
+    //             alert("checked");
+    //         else {
+    //             alert("unchecked");
+    //         }
+    //     });
+    // });
+</script>
+
+</body>
+</html>

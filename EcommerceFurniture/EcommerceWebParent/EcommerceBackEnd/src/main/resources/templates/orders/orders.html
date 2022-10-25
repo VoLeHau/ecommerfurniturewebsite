@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: header_link('Orders - Shopme Admin', 'none')" />
+
+<body>
+	<div class="container-fluid">
+
+		<div th:replace="fragments :: menu_link"></div>
+
+		<div>
+			<h2 class="head-text">Manage Orders</h2>
+		</div>
+
+		<div th:replace="fragments :: search_form_and_message"></div>
+
+		<div class="full-details">
+			<table class="table table-bordered table-striped table-hover table-responsive-xl">
+				<thead class="thead-light">
+					<tr>
+						<th th:replace="fragments :: column_link('id', 'ID', 'none')" />
+						<th th:replace="fragments :: column_link('customer', 'Customer', 'none')" />
+						<th th:replace="fragments :: column_link('total', 'Total', 'none')" />
+						<th th:replace="fragments :: column_link('orderTime', 'Order Create Time', 'none')" />
+
+						<th class="hideable-column">
+							<th th:replace="fragments :: column_link('destination', 'Destination', 'tag')" />
+						</th>
+
+						<th class="hideable-column">
+							<th th:replace="fragments :: column_link('paymentMethod', 'Payment Method', 'tag')" />
+						</th>
+						<th class="hideable-column">
+							<th th:replace="fragments :: column_link('status', 'Status', 'tag')" />
+						</th>
+
+						<th>Action</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="order : ${listOrders}">
+						<td>[[${order.id}]]</td>
+						<td>
+							<a class="linkCustomerDetail text-color" th:href="@{'/customers/detail/' + ${order.customer.id}}">
+								[[${order.customer.fullName}]]
+							</a>
+						</td>
+						<td>
+							<div th:replace="fragments :: format_currency(${order.subtotal} + ${order.shippingCost})"></div>
+						</td>
+						<td>
+							<div th:replace="fragments :: format_time(${order.orderTime})"></div>
+						</td>
+
+						<td>
+							[[${order.address.addressDetail}]], [[${order.address.ward.name}]],
+							[[${order.address.ward.district.name}]], [[${order.address.ward.district.city.name}]],
+							[[${order.address.ward.district.city.country.name}]]
+						</td>
+
+
+						<td class="hideable-column">[[${order.paymentMethod}]]</td>
+
+						<td>
+							<th:block class="hideable-column" th:each="orderTrack : ${order.orderTracks}">
+
+								<div>[[${orderTrack.status}]]</div>
+
+							</th:block>
+						</td>
+
+
+						<td>
+							<a class="fas fa-file-alt fa-2x icon-purple linkOrderDetail mx-2"
+							   th:href="@{'/orders/detail/' + ${order.id}}" title="View details of this order"></a>
+
+							<div th:if="${order.id} == ${idOrderPaidCancel}" style="display: inline-block">
+
+								<div th:replace="fragments :: edit(${order.id}, 'order', '/orders/', true)"></div>
+
+							</div>
+							<div th:unless="${order.id} == ${idOrderPaidCancel}" style="display: inline-block">
+
+								<th:block th:each="track : ${order.orderTracks}">
+
+									<th:block th:if="${trackStat.last}">
+										<th:block  th:if="${track.status} == ${statusNew} or ${track.status} == ${statusPaid}">
+
+											<a class="fa-solid fa-check fa-2x icon-purple mx-2"
+											   th:href="@{'/orders/confirm/' + ${order.id}}" title="Confirm this order"></a>
+
+											<a class="fa-solid fa-xmark fa-2x icon-purple mx-2"
+											   th:href="@{'/orders/cancel/' + ${order.id}}" title="Cancel this order"></a>
+
+										</th:block>
+
+										<th:block  th:if="${track.status} != ${statusNew} and ${track.status} != ${statusPaid} and ${track.status} != ${statusCancel} and ${track.status} != ${statusRefunded} and ${track.status} != ${statusDelivered}">
+											<div th:replace="fragments :: edit(${order.id}, 'order', '/orders/', true)"></div>
+										</th:block>
+
+									</th:block>
+
+								</th:block>
+
+							</div>
+
+
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<div class="less-details">
+			<th:block th:each="order : ${listOrders}">
+				<div class="row m-1">
+					<div class="col-2">
+						[[${order.id}]]
+					</div>
+					<div class="col-10">
+						<div><small>[[${order.orderTime}]]</small></div>
+						<div>
+							<div th:replace="fragments :: format_currency(${order.subtotal} + ${order.shippingCost})">Total</div> -
+							[[${order.paymentMethod}]]
+						</div>
+						<div>
+
+								<a class="fas fa-file-alt fa-2x icon-purple linkOrderDetail mx-2"
+								   th:href="@{'/orders/detail/' + ${order.id}}" title="View details of this order"></a>
+
+								<th:block th:each="track : ${order.orderTracks}">
+
+									<th:block th:if="${trackStat.last}">
+										<th:block  th:if="${track.status} == ${statusNew} or ${track.status} == ${statusPaid}">
+
+											<a class="fa-solid fa-check fa-2x icon-purple mx-2"
+											   th:href="@{'/orders/confirm/' + ${order.id}}" title="Confirm this order"></a>
+
+											<a class="fa-solid fa-xmark fa-2x icon-purple mx-2"
+											   th:href="@{'/orders/cancel/' + ${order.id}}" title="Cancel this order"></a>
+
+										</th:block>
+										<div th:if="${order.id} == ${idOrderPaidCancel}" style="display: inline-block">
+											<div th:replace="fragments :: edit(${order.id}, 'order', '/orders/', true)"></div>
+
+										</div>
+										<div th:unless="${order.id} == ${idOrderPaidCancel}" style="display: inline-block">
+											<th:block  th:if="${track.status} != ${statusNew} and ${track.status} != ${statusPaid} and ${track.status} != ${statusCancel} and ${track.status} != ${statusRefunded} and ${track.status} != ${statusDelivered}">
+												<div th:replace="fragments :: edit(${order.id}, 'order', '/orders/', true)"></div>
+											</th:block>
+										</div>
+
+
+
+									</th:block>
+
+								</th:block>
+
+
+						</div>
+					</div>
+				</div>
+				<div>&nbsp;</div>
+			</th:block>
+		</div>
+
+
+		<div th:replace="pagination_fragments :: pagination('orders')"></div>
+
+		<div th:replace="modal_fragments :: modal_confirm"></div>
+
+		<div class="modal fade" id="customerDetailModal">
+			<div class="modal-dialog modal-lg">
+				<div class="modal-content">
+				</div>
+			</div>
+		</div>
+
+		<div class="modal fade" id="orderDetailModal">
+			<div class="modal-dialog modal-xl">
+				<div class="modal-content">
+				</div>
+			</div>
+		</div>
+
+		<div th:replace="fragments :: footer_link"></div>
+
+	</div>
+
+	<script type="text/javascript">
+		moduleURL = "[[@{/orders}]]";
+
+		$(document).ready(function () {
+			handleLinkViewCustomerDetails();
+			handleLinkViewOrderDetails();
+			handleLinkDeleteOrder();
+		});
+
+		function handleLinkDeleteOrder() {
+			$(".link-delete").on("click", function (e) {
+				e.preventDefault();
+				showDeleteConfirmModal($(this), 'order');
+			});
+		}
+
+		function handleLinkViewCustomerDetails() {
+			$(".linkCustomerDetail").on("click", function (e) {
+				e.preventDefault();
+				linkDetailURL = $(this).attr("href");
+				$("#customerDetailModal").modal("show").find(".modal-content").load(linkDetailURL);
+			});
+		}
+
+		function handleLinkViewOrderDetails() {
+			$(".linkOrderDetail").on("click", function (e) {
+				e.preventDefault();
+				linkDetailURL = $(this).attr("href");
+				$("#orderDetailModal").modal("show").find(".modal-content").load(linkDetailURL);
+			});
+		}
+	</script>
+	
+	<script type="text/javascript" th:src="@{/js/common-list.js}"></script>
+</body>
+
+</html>

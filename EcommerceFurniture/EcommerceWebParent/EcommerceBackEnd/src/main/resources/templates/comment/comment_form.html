@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity5"
+      lang="en">
+<head th:replace="fragments :: header_link(${pageTitle}, 'none')"></head>
+
+<body>
+<div class="container-fluid">
+    <div>
+        <div th:replace="fragments :: menu_link"></div>
+
+        <h2 class="head-text">Comment Reply | [[${pageTitle}]]</h2>
+
+    </div>
+
+    <form class="box-shadow-form p-5 mb-5" th:action="@{/comments/reply/save}" method="post" style="max-width: 700px; margin: 0 auto"
+          th:object="${commentReply}">
+        <input type="hidden" th:name="id" th:value="${comment.id}">
+        <div class="rounded p-3">
+
+            <label class="col-sm-4 col-form-label">Comment:</label>
+            <div class="col-sm-8">
+                <textarea th:text="${comment.text}" class="form-control" rows="3" cols="3" readonly></textarea>
+            </div>
+
+            <th:block th:each="commentReply : ${listCommentsReply}">
+                <label class="col-sm-4 col-form-label">Reply:</label>
+                <div class="col-sm-8">
+                        <textarea th:text="${commentReply.text}" class="form-control" rows="3" cols="3" readonly></textarea>
+                </div>
+            </th:block>
+
+            <label class="col-sm-4 col-form-label">New Reply:</label>
+            <div class="col-sm-8">
+                <textarea th:field="*{text}" class="form-control" rows="3" cols="3"></textarea>
+            </div>
+
+            <div class="text-center">
+                <input type="submit" value="Reply" class="btn btn-primary-color m-3">
+                <input type="button" value="Cancel" class="btn btn-secondary" id="cancelButton">
+            </div>
+        </div>
+    </form>
+
+    <div th:replace="modal_fragments :: modal_dialog"></div>
+
+</div>
+<div th:replace="fragments :: footer_link"></div>
+
+<script type="text/javascript" th:src="@{/js/common-form.js}"></script>
+<script type="text/javascript">
+    moduleUrl = "[[@{/comments}]]";
+
+
+</script>
+</body>
+
+
+
+</html>

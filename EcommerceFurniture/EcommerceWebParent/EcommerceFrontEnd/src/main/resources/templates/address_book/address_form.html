@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="fragments :: header_link(${pageTitle}, 'none')" />
+
+<body>
+	<div class="container-fluid">
+	
+		<div th:replace="fragments :: header_menu"></div>
+		<div th:replace="fragments :: search_nav"></div>
+
+		<div class="text-center">
+			<h2>[[${pageTitle}]]</h2>
+		</div>
+		<div>&nbsp;</div>
+
+		<form class="box-shadow-form" th:action="@{/address_book/save}" method="post" th:object="${address}"
+			style="max-width: 600px; margin: 0 auto">
+			<input type="hidden" th:field="*{id}" />
+			<input type="hidden" th:field="*{defaultForShipping}" />
+			<input type="hidden" name="redirect" th:value="${param.redirect}" />
+			<div class="rounded p-5">
+				<div class="form-group row my-5 px-3">
+					<label class="col-sm-4 col-form-lable">Country&nbsp;<span class="required">*</span>:</label>
+					<div class="col-sm-8">
+						<select class="form-control" th:name="country" id="country" required>
+							<option th:if="${address.id == null}" value="">--Select Country--</option>
+							<th:block th:each="country : ${listCountries}">
+								<div th:if="${address.id != null}">
+									<option th:if="${address.ward.district.city.country.id} == ${country.id}" selected th:value="${country.id}">[[${country.name}]]</option>
+									<option th:unless="${address.ward.district.city.country.id} == ${country.id}" th:value="${country.id}">[[${country.name}]]</option>
+								</div>
+
+								<div th:unless="${address.id != null}">
+									<option th:value="${country.id}">[[${country.name}]]</option>
+								</div>
+							</th:block>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group row my-5 px-3">
+					<label class="col-sm-4 col-form-lable">City/Province&nbsp;<span class="required">*</span>:</label>
+					<div class="col-sm-8">
+						<select class="form-control" id="city" th:name="city" required>
+							<option th:if="${address.id == null}" value="">--Select City/Province--</option>
+							<th:block th:each="city : ${listCities}">
+								<option th:if="${address.ward.district.city.id} == ${city.id}" selected th:value="${city.id}">[[${city.name}]]</option>
+								<option th:unless="${address.ward.district.city.id} == ${city.id}" th:value="${city.id}">[[${city.name}]]</option>
+							</th:block>
+
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group row my-5 px-3">
+					<label class="col-sm-4 col-form-lable">District&nbsp;<span class="required">*</span>:</label>
+					<div class="col-sm-8">
+						<select class="form-control" id="district" th:name="district" required>
+							<option th:if="${address.id == null}" value="">--Select District--</option>
+							<th:block th:each="district : ${listDistricts}">
+								<option th:if="${address.ward.district.id} == ${district.id}" selected th:value="${district.id}">[[${district.name}]]</option>
+								<option th:unless="${address.ward.district.id} == ${district.id}" th:value="${district.id}">[[${district.name}]]</option>
+							</th:block>
+						</select>
+					</div>
+				</div>
+
+				<div class="form-group row my-5 px-3">
+					<label class="col-sm-4 col-form-lable">Ward/Commune&nbsp;<span class="required">*</span>:</label>
+					<div class="col-sm-8">
+						<select class="form-control" id="ward" th:name="ward" required>
+							<option th:if="${address.id == null}" value="">--Select Ward/Commune--</option>
+							<th:block th:each="ward : ${listWards}">
+								<option th:if="${address.ward.id} == ${ward.id}" selected th:value="${ward.id}">[[${ward.name}]]</option>
+								<option th:unless="${address.ward.id} == ${ward.id}" th:value="${ward.id}">[[${ward.name}]]</option>
+							</th:block>
+						</select>
+					</div>
+				</div>
+
+
+				<div class="form-group row my-5 px-3">
+					<label class="col-sm-4 col-form-lable">Street Address : </label>
+					<div class="col-sm-8">
+						<input type="text" class="form-control" th:field="*{addressDetail}" placeholder="Example : Số 105"/>
+					</div>
+				</div>
+				<div class="text-center">
+					<input type="submit" value="Save" class="btn btn-primary-color my-3" />
+					<button class="btn btn-second-color my-3">
+						<a th:href="@{'/address_book'}" class="text-white">Back</a>
+					</button>
+				</div>
+			</div>
+		</form>
+
+		<div>&nbsp;</div>
+		<div th:replace="fragments :: footer_menu"></div>
+	</div>
+	<script type="text/javascript">
+		contextPath = "[[@{/}]]";
+
+		$(document).ready(function () {
+
+
+			dropDownCountry = $("#country");
+			dropDownCity = $("#city");
+			dropDownDistrict = $("#district");
+			dropDownWard = $("#ward");
+
+			addressDetail = $("#addressDetail");
+
+			dropDownCountry.on("change", function() {
+				dropDownCity.empty();
+				dropDownCity.append($("<option>").val("").text("--Select City/Province--"));
+				dropDownDistrict.empty();
+				dropDownDistrict.append($("<option>").val("").text("--Select District--"));
+				dropDownWard.empty();
+				dropDownWard.append($("<option>").val("").text("--Select Ward/Commune--"));
+				addressDetail.val("")
+
+				loadCitiesForCountry();
+				dropDownCity.val("").focus();
+				dropDownCity.append($("<option>").val("").text("--Select City/Province--").attr("selected","selected"));
+
+			})
+
+			dropDownCity.on("change", function() {
+
+				dropDownDistrict.empty();
+				dropDownDistrict.append($("<option>").val("").text("--Select District--"));
+				dropDownWard.empty();
+				dropDownWard.append($("<option>").val("").text("--Select Ward/Commune--"));
+				addressDetail.val("")
+
+				loadDistrictForCity();
+				dropDownDistrict.val("").focus();
+
+			})
+
+			dropDownDistrict.on("change", function() {
+
+				dropDownWard.empty();
+				dropDownWard.append($("<option>").val("").text("--Select Ward/Commune--"));
+				addressDetail.val("")
+
+				loadWardForDistrict();
+				dropDownWard.val("").focus();
+
+			})
+
+			dropDownWard.on("change", function() {
+
+				addressDetail.val("")
+
+			})
+
+		})
+
+		function loadCitiesForCountry() {
+			selectedCountry = $("#country option:selected");
+			countryId = selectedCountry.val();
+			url = contextPath + "settings/list_cities_by_country/" + countryId;
+
+			if(countryId > 0) {
+				$.get(url, function(responseJSON) {
+					dropDownCity.empty();
+					dropDownCity.append($("<option>").val("").text("--Select City/Province--"));
+					$.each(responseJSON, function(index, city){
+						dropDownCity.append($("<option>").val(city.id).text(city.name));
+					})
+				})
+			}
+			else {
+				dropDownCity.empty();
+				dropDownCity.append($("<option>").val("").text("--Select City/Province--").attr("selected","selected"));
+
+				dropDownDistrict.empty();
+				dropDownDistrict.append($("<option>").val("").text("--Select District--"));
+				dropDownWard.empty();
+				dropDownWard.append($("<option>").val("").text("--Select Ward/Commune--"));
+
+
+			}
+		}
+
+		function loadDistrictForCity() {
+			selectedCity= $("#city option:selected");
+			cityId = selectedCity.val();
+			url = contextPath + "settings/list_districts_by_city/" + cityId;
+			$.get(url, function(responseJSON) {
+				dropDownDistrict.empty();
+				dropDownDistrict.append($("<option>").val("").text("--Select District--"));
+
+				$.each(responseJSON, function(index, district){
+					dropDownDistrict.append($("<option>").val(district.id).text(district.name));
+				})
+			})
+		}
+
+
+		function loadWardForDistrict() {
+			selectedDistrict= $("#district option:selected");
+			districId = selectedDistrict.val();
+			url = contextPath + "settings/list_wards_by_district/" + districId;
+			$.get(url, function(responseJSON) {
+				dropDownWard.empty();
+				dropDownWard.append($("<option>").val("").text("--Select Ward/Commune--"));
+
+				$.each(responseJSON, function(index, ward){
+					dropDownWard.append($("<option>").val(ward.id).text(ward.name));
+				})
+			})
+		}
+
+
+
+	</script>
+
+</body>
+
+</html>

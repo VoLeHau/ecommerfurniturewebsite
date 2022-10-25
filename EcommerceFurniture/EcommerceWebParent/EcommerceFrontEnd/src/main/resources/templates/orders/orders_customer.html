@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="fragments :: header_link('My Orders', 'none')" />
+<body>
+<div class="container-fluid">
+  <div th:replace="fragments :: header_menu"></div>
+  <div>
+    <h2 style="margin-top: 8rem">My Orders</h2>
+  </div>
+
+  <div th:replace="fragments :: search_form"></div>
+
+  <div class="full-details">
+    <table class="table table-bordered table-striped table-hover table-responsive-xl">
+      <thead class="thead-light">
+      <tr>
+        <th th:replace="fragments :: column_link('id', 'ID', 'orders', 'none')"></th>
+        <th th:replace="fragments :: column_link('orderTime', 'Order Time', 'orders', 'none')"></th>
+        <th>Products</th>
+        <th th:replace="fragments :: column_link('total', 'Total', 'orders', 'none')"></th>
+        <th th:replace="fragments :: column_link('status', 'Status', 'orders', 'none')"></th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="order : ${listOrders}">
+        <td th:text="${order.id}">ID</td>
+        <td><div th:replace="fragments :: format_time(${order.orderTime})">Order Time</div></td>
+        <td th:utext="${order.productNames}"></td>
+        <td>
+          <div th:replace="fragments :: format_currency(${order.subtotal} + ${order.shippingCost})">Total</div>
+        </td>
+        <td>
+
+          <th:block class="hideable-column" th:each="orderTrack : ${order.orderTracks}">
+            <div th:if="${orderTrack.order} == ${order}">
+              <div>[[${orderTrack.status}]]</div>
+            </div>
+          </th:block>
+        </td>
+        <td>
+          <a class="fas fa-file-alt fa-2x icon-purple linkDetail"
+             th:href="@{'/orders/detail/' + ${order.id}}"
+             title="View details of this order"></a>
+          <th:block th:if="${order.id} != ${idOrderPaidCancel}">
+              <th:block th:each="track : ${order.orderTracks}">
+
+                <th:block th:if="${trackStat.last}">
+
+                    <th:block th:if="${track.status} != ${statusCancel} and ${track.status} != ${statusRefunded}
+                      and ${track.status} != ${statusReturned} and ${track.status} != ${statusReturnRequested}">
+                       <a class="fas fa-undo fa-2x icon-purple linkReturnOrder" href=""
+                         th:classappend="'linkReturn' + ${order.id}"
+                         th:orderId="${order.id}"
+                         title="Return this order"></a>
+                    </th:block>
+
+                </th:block>
+
+              </th:block>
+
+          </th:block>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="less-details p-2">
+    <th:block th:each="order : ${listOrders}">
+      <div class="row m-1">
+        <div class="card">
+          <div class="card-header">
+            <div class="row">
+              <div class="col">
+                <span>Order ID #[[${order.id}]]</span>
+              </div>
+              <div class="col">
+                <div class="float-right">
+                  <a class="fas fa-file-alt fa-2x icon-purple linkDetail"
+                     th:href="@{'/orders/detail/' + ${order.id}}"></a>
+                  <th:block th:if="${order.returnRequested == false && order.returned == false}">
+                    &nbsp;
+                    <a class="fas fa-undo fa-2x icon-purple linkReturnOrder" href=""
+                       th:classappend="'linkReturn' + ${order.id}"
+                       th:orderId="${order.id}"
+                       title="Return this order"></a>
+                  </th:block>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div>
+              <span th:utext="${order.productNames}"></span>
+            </div>
+            <div class="row">
+              <div class="col">
+                <div th:replace="fragments :: format_currency(${order.subtotal} + ${order.shippingCost})">Total</div>
+              </div>
+                <th:block class="hideable-column" th:each="orderTrack : ${listOrderTrack}">
+                  <div th:if="${orderTrack.order} == ${order}">
+                    <div>[[${orderTrack.status}]]</div>
+                  </div>
+                </th:block>
+            </div>
+            <div><small><div th:replace="fragments :: format_time(${order.orderTime})"></div></small></div>
+          </div>
+        </div>
+      </div>
+    </th:block>
+  </div>
+
+  <div th:replace="fragments :: pagination('orders', 'orders')"></div>
+
+  <div th:replace="orders/return_order_modal :: content"></div>
+
+  <div class="modal fade" id="orderDetailsModal">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+      </div>
+    </div>
+  </div>
+
+  <div>&nbsp;</div>
+  <div th:replace="fragments :: footer_menu"></div>
+
+</div>
+<script th:src="@{/js/common-list.js}"></script>
+<script type="text/javascript">
+  moduleURL = "[[@{/orders}]]";
+  contextPath = "[[@{/}]]";
+  var csrfHeaderName = "[[${_csrf.headerName}]]";
+  var csrfValue = "[[${_csrf.token}]]";
+
+  $(document).ready(function(){
+    handleDetailLink(".linkDetail", "#orderDetailsModal");
+  });
+</script>
+<script type="text/javascript" th:src="@{/js/return_order.js}"></script>
+</body>
+</html>
